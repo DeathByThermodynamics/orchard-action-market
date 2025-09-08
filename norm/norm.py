@@ -126,55 +126,6 @@ class NormEnv:
                 #     min_reward = reward
         return reward_dict
 
-    def generate_reward_table_cmstyle_polarized(self, agent_number, top, bottom, separation):
-        reward_dict = {}
-
-        group = agent_number % 2
-
-        #np.random.seed(seed)
-        temp_reward = TemporaryReward(self.state_dim)
-        temp_reward.to(device)
-
-        good_mean = top
-        bad_mean = bottom
-
-        max_reward = 0
-        min_reward = 0
-        for state in range(self.total_states):
-            reward_dict[state] = []
-            best_action = random.randint(0, self.action_space)
-            state1 = ten(np.array(self.state_to_list(state)))
-            for i in range(self.action_space):
-
-                a = ten(np.array([i]))
-
-
-                if group == 0:
-                    if i < self.action_space / 2:
-                        reward = max_reward * (1 / ((1 + np.abs(i-best_action)) * top))
-                        #reward = np.abs(reward)
-                    else:
-                        reward = max_reward * (1 / ((1 + np.abs(i-best_action)) * top)) - separation
-                        # reward = -1 * np.abs(reward)
-                        # max_reward = -1 * min_reward
-                        # min_reward = -1 * max_reward
-
-                else:
-                    if i < self.action_space / 2:
-                        reward = max_reward * (1 / ((1 + np.abs(i-best_action)) * top)) - separation
-                        # reward = -1 * np.abs(reward)
-                        # max_reward = -1 * min_reward
-                        # min_reward = -1 * max_reward
-                    else:
-                        reward = max_reward * (1 / ((1 + np.abs(i-best_action)) * top))
-                        #reward = np.abs(reward)
-
-                reward_dict[state].append(reward)
-                # if reward > max_reward:
-                #     max_reward = reward
-                # elif reward < min_reward:
-                #     min_reward = reward
-        return reward_dict
 
     def generate_reward_table_variance(self, seed, top, bottom):
         reward_dict = {}
