@@ -189,8 +189,6 @@ class ActorNetwork():
         if np.sum(weights) <= 10e-3:
             weights = np.ones(len(action_space))
 
-        #return [action_space[np.argmax(weights)]]
-
         return random.choices(action_space, weights)
 
 

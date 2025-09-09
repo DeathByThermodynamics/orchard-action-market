@@ -63,6 +63,9 @@ class NormEnv:
 
         return reward_dict
 
+    """
+    Generates a reward function based on a "dummy" Neural Network nonlinear function.
+    """
     def generate_reward_table_procedural(self, seed):
         reward_dict = {}
 
@@ -93,58 +96,41 @@ class NormEnv:
 
         return reward_dict
 
+    """
+    Generates a reward function based on the "Content Market" style distance-vector utility
+    """
     def generate_reward_table_cmstyle(self, seed, top, bottom):
         reward_dict = {}
 
-        # np.random.seed(seed)
-        #temp_reward = TemporaryReward(self.state_dim)
-        #temp_reward.to(device)
-
         max_reward = 2
-        diff_per_act = top
         for state in range(self.total_states):
             reward_dict[state] = []
-            state1 = ten(np.array(self.state_to_list(state)))
 
             best_action = random.randint(0, self.action_space)
 
             for i in range(self.action_space):
 
-                a = ten(np.array([i]))
-                #reward = temp_reward(state1, a).detach().cpu().numpy()[0]
-                #reward = np.random.random() * (top - bottom) + bottom
-                #reward = max_reward - diff_per_act * np.abs(i - best_action)
                 reward = max_reward * (1 / ((1 + np.abs(i-best_action)) * top))
-                # if reward < bottom:
-                #     reward = bottom
-                # if reward > top:
-                #     reward = top
                 reward_dict[state].append(reward)
-                # if reward > max_reward:
-                #     max_reward = reward
-                # elif reward < min_reward:
-                #     min_reward = reward
+
         return reward_dict
 
-
+    """
+    Generates a reward function based on top/bottom rewards to simulate a Variance/Std based reward function.
+    """
     def generate_reward_table_variance(self, seed, top, bottom):
         reward_dict = {}
-
-        # np.random.seed(seed)
-        temp_reward = TemporaryReward(self.state_dim)
-        temp_reward.to(device)
 
         max_reward = 0
         min_reward = 0
         for state in range(self.total_states):
             reward_dict[state] = []
-            state1 = ten(np.array(self.state_to_list(state)))
+
 
             for i in range(self.action_space):
 
-                a = ten(np.array([i]))
-                #reward = temp_reward(state1, a).detach().cpu().numpy()[0]
-                #reward = np.random.random() * (top - bottom) + bottom
+
+
                 reward = np.random.normal(0.5, (top - bottom) / 3)
                 # if reward < bottom:
                 #     reward = bottom
@@ -157,6 +143,9 @@ class NormEnv:
                     min_reward = reward
         return reward_dict
 
+    """
+    Generates a reward function with Variance and a "best state" (for debugging purposes).
+    """
     def generate_reward_table_variance_separation(self, seed, top, bottom):
         reward_dict = {}
 
@@ -173,22 +162,14 @@ class NormEnv:
             if best_action == best_states[state]:
                 best_action = self.action_space-1
             reward_dict[state] = []
-            state1 = ten(np.array(self.state_to_list(state)))
             for i in range(self.action_space):
 
-                a = ten(np.array([i]))
-                #reward = temp_reward(state1, a).detach().cpu().numpy()[0]
-                #reward = np.random.random() * (top - bottom) + bottom
                 reward = np.random.normal(0.5, (top - bottom) / 3)
 
                 if best_action == i:
                     reward = min(top, np.random.normal(top, (top - bottom) / 5))
                 if best_states[state] == i:
                     reward = min(top, np.random.normal(0.5 + (top - bottom) / 3, (top - bottom) / 5))
-                # if reward < bottom:
-                #     reward = bottom
-                # if reward > top:
-                #     reward = top
                 reward_dict[state].append(reward)
                 if reward > max_reward:
                     max_reward = reward
@@ -196,14 +177,13 @@ class NormEnv:
                     min_reward = reward
         return reward_dict
 
+    """
+    Generates a reward function with Variance but with the top/bottom rewards being the two separate means.
+    """
     def generate_reward_table_polarized_variance(self, agent_number, top, bottom):
         reward_dict = {}
 
         group = agent_number % 2
-
-        #np.random.seed(seed)
-        temp_reward = TemporaryReward(self.state_dim)
-        temp_reward.to(device)
 
         good_mean = top
         bad_mean = bottom
@@ -212,31 +192,19 @@ class NormEnv:
         min_reward = 0
         for state in range(self.total_states):
             reward_dict[state] = []
-            state1 = ten(np.array(self.state_to_list(state)))
             for i in range(self.action_space):
-
-                a = ten(np.array([i]))
-
 
                 if group == 0:
                     if i < self.action_space / 2:
                         reward = np.random.normal(good_mean, 0.5)
-                        #reward = np.abs(reward)
                     else:
                         reward = np.random.normal(bad_mean, 0.5)
-                        # reward = -1 * np.abs(reward)
-                        # max_reward = -1 * min_reward
-                        # min_reward = -1 * max_reward
 
                 else:
                     if i < self.action_space / 2:
                         reward = np.random.normal(bad_mean, 0.5)
-                        # reward = -1 * np.abs(reward)
-                        # max_reward = -1 * min_reward
-                        # min_reward = -1 * max_reward
                     else:
                         reward = np.random.normal(good_mean, 0.5)
-                        #reward = np.abs(reward)
 
                 reward_dict[state].append(reward)
                 if reward > max_reward:

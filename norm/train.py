@@ -155,7 +155,8 @@ def training_loop(num_agents, max_state_num, name, arguments, k=1.0, th_factor=0
     for agn in range(num_agents):
 
         p_network_list.append(ActorNetwork(state_size, possible_action_size, alpha, num=agn))
-        i_network_list.append(ActorNetwork(state_size, possible_action_size, alpha, num=agn))
+        #i_network_list.append(ActorNetwork(state_size, possible_action_size, alpha, num=agn))
+        i_network_list.append(p_network_list[agn])
         # f_network_list.append(Copier(state_size, possible_action_size, alpha2, num=agn))
         agents_list.append(
             NormAgent(num_agents, agn, 8, k, th_factor, arguments, p_network_list[agn], None, None,
@@ -398,6 +399,9 @@ def training_loop(num_agents, max_state_num, name, arguments, k=1.0, th_factor=0
 
         """
         Sharing Reputation (Gossiping)
+        
+        The similarity upper limit used here is 3.
+        Gossiping starts at 50 steps.
         """
         active_agents = []
         gossiping_start = 50
@@ -512,7 +516,7 @@ def training_loop(num_agents, max_state_num, name, arguments, k=1.0, th_factor=0
                         top_agent = ag.num
                         max_folls = ag.followers
 
-            """ Reputation Graphing """
+            """ Reputation Graphing (Kepeing Track) """
 
             for ii in agents_list:
                 sums = 0
@@ -606,9 +610,9 @@ def training_loop(num_agents, max_state_num, name, arguments, k=1.0, th_factor=0
             for ag in agents_list:
                 ag.followers = folls[ag.num]
 
-            """ Compute Expected Policy Rewards """
-            if i % update_interval == 0 and i > 0:
 
+            if i % update_interval == 0 and i > 0:
+                """ Record Follower Counts """
                 for ag in agents_list:
                     if len(followers[ag.num]) == 0:
                         old_followers = 0
@@ -617,6 +621,7 @@ def training_loop(num_agents, max_state_num, name, arguments, k=1.0, th_factor=0
                     delta_followers[ag.num].append(folls[ag.num] - old_followers)
                     followers[ag.num].append(folls[ag.num])
 
+                """ Record Self Utility """
                 for ag in agents_list:
                     self_util[ag.num].append(ag.selfish_beta)
                     ind_self_util[ag.num].append(ag.independent_beta)
@@ -624,6 +629,8 @@ def training_loop(num_agents, max_state_num, name, arguments, k=1.0, th_factor=0
 
                     maxrep = np.max(ag.R)
                     infl_rep[ag.num].append(maxrep)
+
+                """ Compute Expected Policy Rewards (Self Utility & Reputation) """
 
                 self_policy_reward = compute_policy_interim(max_state_num, agents_list, p_network_list, i_network_list)
                 for ag in agents_list:
@@ -650,7 +657,7 @@ def training_loop(num_agents, max_state_num, name, arguments, k=1.0, th_factor=0
                 correct_infl = 0
 
 
-    print("Final Overall best Policy |", name)
+    print("Final Overall Best Policy |", name)
     compute_overall_policy(max_state_num, agents_list, p_network_list, i_network_list)
     # Plotting
     if True:

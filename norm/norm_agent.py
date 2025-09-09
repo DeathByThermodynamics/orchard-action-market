@@ -99,9 +99,6 @@ class NormAgent:
             if random_var < 0.05:
                 return random.choices(action_space)
             return self.influencer_network.get_learned_action(s, action_space)
-        # elif self.target_influencer != -1:
-        #     return self.copier_network_static.get_learned_action(s, action_space)
-        #     #return self.copier_network.get_learned_action(s, action_space)
         else:
             random_var = np.random.random()
             if random_var < 0.05:
@@ -188,7 +185,7 @@ class NormAgent:
                 # print(self.beta)
                 # print(rep)
                 rep = rep * self.reputation_factor
-                if rep > self.independent_beta and agents_list[index].target_influencer == -1 and rep > max_val - self.epsilon:
+                if rep > self.independent_beta and agents_list[index].target_influencer == -1 and rep > max_val - self.epsilon and rep > 0.06 * self.reputation_factor:
                     possible_agents.append(index)
 
             if len(possible_agents) != 0:
@@ -208,7 +205,6 @@ class NormAgent:
                 agents_list[self.target_influencer].followers += 1
                 agents_list[self.target_influencer].is_follower = False
                 agents_list[self.target_influencer].target_influencer = -1
-                #self.copier_network_static = agents_list[self.target_influencer].influencer_network
 
             else:
                 if self.target_influencer != -1:
@@ -223,6 +219,9 @@ class NormAgent:
         rho = self.rho
         kappa = self.kappa
         cons = self.cons
+        """
+        Synchronous
+        """
         if not self.dynamic_change:
             if self.time_counter2 == 0:
                 self.check_your_influencer(agents_list)
@@ -238,6 +237,9 @@ class NormAgent:
                     self.time_counter1 = 0
             return
 
+        """
+        Asynchronous
+        """
         if self.rate_counter == -1:
             self.rate_counter = self.cons * rho
             self.infl_counter = self.cons * rho
@@ -248,8 +250,6 @@ class NormAgent:
         self.infl_counter -= 1
         self.selfless_counter -= 1
 
-
-        mut = 1 / (cons * rho)
         if self.rate_counter == 0:
             self.adjust_rate()
             self.rate_counter = self.cons * rho
@@ -260,8 +260,6 @@ class NormAgent:
 
 
         # choose influencer
-        var = np.random.random()
-        mut = 1 / (cons * rho * kappa)
         if self.infl_counter == 0:
             self.switch_influencer(agents_list, timestep)
             self.infl_counter = self.cons * rho
